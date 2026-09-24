@@ -79,7 +79,7 @@ button.plus{background:#d9f7df}
 <h1>🎮 Kids Points Tracker</h1>
 
 <div class="sub">
-Starting score: 20 points • Monday–Sunday
+Start each day at 20 points • Yesterday's score determines today's gaming
 </div>
 
 <div id="cards"></div>
@@ -104,34 +104,28 @@ let scores={
   Zavier:20
 };
 
-let updating=false;
 
-
-/* ---------------------------
-   STATUS
----------------------------- */
+/* GAMING STATUS */
 
 function status(n){
 
-  if(n>=25)
-    return["🟢 Full gaming","Full gaming privileges"];
-
   if(n>=20)
-    return["🟢 Normal gaming","Normal gaming"];
+    return["🟢 3 hours gaming","Full gaming"];
+
+  if(n>=18)
+    return["🟢 2 hours gaming","2 hours gaming"];
 
   if(n>=15)
-    return["🟡 Reduced gaming","Reduced gaming"];
+    return["🟡 1 hour gaming","1 hour gaming"];
 
   if(n>=10)
-    return["🟠 No gaming","Earn back to 15"];
+    return["🟠 No gaming","No gaming"];
 
-  return["🔴 No gaming","Earn back to 15"];
+  return["🔴 No gaming + PHONE LOST","No gaming and phone taken away"];
 }
 
 
-/* ---------------------------
-   LOAD SCORES FROM FIREBASE
----------------------------- */
+/* LOAD SCORES */
 
 async function loadScores(){
 
@@ -149,8 +143,8 @@ async function loadScores(){
     if(data && typeof data==="object"){
 
       scores={
-        Kaden:Number(data.Kaden ?? 20),
-        Zavier:Number(data.Zavier ?? 20)
+        Kaden:Math.min(20,Math.max(0,Number(data.Kaden ?? 20))),
+        Zavier:Math.min(20,Math.max(0,Number(data.Zavier ?? 20)))
       };
 
     }else{
@@ -175,9 +169,7 @@ async function loadScores(){
 }
 
 
-/* ---------------------------
-   SAVE SCORES TO FIREBASE
----------------------------- */
+/* SAVE SCORES */
 
 async function saveScores(){
 
@@ -208,13 +200,17 @@ async function saveScores(){
 }
 
 
-/* ---------------------------
-   CHANGE SCORE
----------------------------- */
+/* CHANGE SCORE - MAXIMUM 20 */
 
 async function change(k,n){
 
-  scores[k]=Math.max(0,Number(scores[k])+n);
+  scores[k]=Math.min(
+    20,
+    Math.max(
+      0,
+      Number(scores[k])+n
+    )
+  );
 
   render();
 
@@ -226,9 +222,7 @@ async function change(k,n){
 }
 
 
-/* ---------------------------
-   RESET
----------------------------- */
+/* RESET */
 
 async function resetAll(){
 
@@ -251,9 +245,7 @@ async function resetAll(){
 }
 
 
-/* ---------------------------
-   DISPLAY
----------------------------- */
+/* DISPLAY */
 
 function render(){
 
@@ -335,14 +327,9 @@ function render(){
 }
 
 
-/* ---------------------------
-   CHECK FOR CHANGES
-   EVERY 2 SECONDS
----------------------------- */
+/* SYNC EVERY 2 SECONDS */
 
 async function syncFromFirebase(){
-
-  if(updating) return;
 
   try{
 
@@ -350,15 +337,25 @@ async function syncFromFirebase(){
       DATABASE_URL+"/scores.json"
     );
 
-    if(!response.ok) return;
+    if(!response.ok)
+      return;
 
     const data=await response.json();
 
     if(data && typeof data==="object"){
 
       const newScores={
-        Kaden:Number(data.Kaden ?? 20),
-        Zavier:Number(data.Zavier ?? 20)
+
+        Kaden:Math.min(
+          20,
+          Math.max(0,Number(data.Kaden ?? 20))
+        ),
+
+        Zavier:Math.min(
+          20,
+          Math.max(0,Number(data.Zavier ?? 20))
+        )
+
       };
 
       if(
@@ -383,13 +380,14 @@ async function syncFromFirebase(){
 }
 
 
-/* ---------------------------
-   START APP
----------------------------- */
+/* START */
 
 loadScores();
 
-setInterval(syncFromFirebase,2000);
+setInterval(
+  syncFromFirebase,
+  2000
+);
 
 </script>
 
