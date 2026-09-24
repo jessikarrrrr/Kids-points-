@@ -3,71 +3,395 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kids Points Tracker</title>
+
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f4f4f6;margin:0;padding:20px;color:#222}
-h1{text-align:center;margin:5px 0 8px}.sub{text-align:center;color:#666;margin-bottom:20px}
-.card{background:white;border-radius:20px;padding:20px;margin:16px 0;box-shadow:0 3px 15px #0001}
-.name{font-size:24px;font-weight:800;text-align:center}
-.score{text-align:center;font-size:58px;font-weight:900;margin:8px}
-.status{text-align:center;font-weight:700;margin-bottom:15px}
-.buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
-button{border:0;border-radius:12px;padding:14px 5px;font-size:18px;font-weight:800;background:#e8e8ed}
-button.plus{background:#d9f7df}.minus{background:#ffdcdc}
-.reset{display:block;margin:18px auto;background:#222;color:white;padding:12px 22px}
-.log{font-size:13px;color:#666;margin-top:14px;min-height:18px}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:#f4f4f6;
+  margin:0;
+  padding:20px;
+  color:#222
+}
+h1{text-align:center;margin:5px 0 8px}
+.sub{text-align:center;color:#666;margin-bottom:20px}
+.card{
+  background:white;
+  border-radius:20px;
+  padding:20px;
+  margin:16px 0;
+  box-shadow:0 3px 15px #0001
+}
+.name{
+  font-size:24px;
+  font-weight:800;
+  text-align:center
+}
+.score{
+  text-align:center;
+  font-size:58px;
+  font-weight:900;
+  margin:8px
+}
+.status{
+  text-align:center;
+  font-weight:700;
+  margin-bottom:15px
+}
+.buttons{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:9px
+}
+button{
+  border:0;
+  border-radius:12px;
+  padding:14px 5px;
+  font-size:18px;
+  font-weight:800;
+  background:#e8e8ed
+}
+button.plus{background:#d9f7df}
+.minus{background:#ffdcdc}
+.reset{
+  display:block;
+  margin:18px auto;
+  background:#222;
+  color:white;
+  padding:12px 22px
+}
+.log{
+  font-size:13px;
+  color:#666;
+  margin-top:14px;
+  min-height:18px
+}
+.sync{
+  text-align:center;
+  font-size:12px;
+  color:#777;
+  margin-top:10px
+}
 </style>
 </head>
+
 <body>
+
 <h1>🎮 Kids Points Tracker</h1>
-<div class="sub">Starting score: 20 points • Monday–Sunday</div>
+
+<div class="sub">
+Starting score: 20 points • Monday–Sunday
+</div>
 
 <div id="cards"></div>
-<button class="reset" onclick="resetAll()">Reset both to 20</button>
+
+<button class="reset" onclick="resetAll()">
+Reset both to 20
+</button>
+
+<div class="sync" id="syncStatus">
+Connecting...
+</div>
 
 <script>
+
 const kids=["Kaden","Zavier"];
-let scores=JSON.parse(localStorage.getItem("kidsScores")||'{"Kaden":20,"Zavier":20}');
+
+const DATABASE_URL =
+"https://kids-points-shared-default-rtdb.asia-southeast1.firebasedatabase.app";
+
+let scores={
+  Kaden:20,
+  Zavier:20
+};
+
+let updating=false;
+
+
+/* ---------------------------
+   STATUS
+---------------------------- */
+
 function status(n){
- if(n>=25)return["🟢 Full gaming","Full gaming privileges"];
- if(n>=20)return["🟢 Normal gaming","Normal gaming"];
- if(n>=15)return["🟡 Reduced gaming","Reduced gaming"];
- if(n>=10)return["🟠 No gaming","Earn back to 15"];
- return["🔴 No gaming","Earn back to 15"];
+
+  if(n>=25)
+    return["🟢 Full gaming","Full gaming privileges"];
+
+  if(n>=20)
+    return["🟢 Normal gaming","Normal gaming"];
+
+  if(n>=15)
+    return["🟡 Reduced gaming","Reduced gaming"];
+
+  if(n>=10)
+    return["🟠 No gaming","Earn back to 15"];
+
+  return["🔴 No gaming","Earn back to 15"];
 }
-function change(k,n){
- scores[k]=Math.max(0,scores[k]+n);
- localStorage.setItem("kidsScores",JSON.stringify(scores));
- render();
+
+
+/* ---------------------------
+   LOAD SCORES FROM FIREBASE
+---------------------------- */
+
+async function loadScores(){
+
+  try{
+
+    const response=await fetch(
+      DATABASE_URL+"/scores.json"
+    );
+
+    if(!response.ok)
+      throw new Error("Database error");
+
+    const data=await response.json();
+
+    if(data && typeof data==="object"){
+
+      scores={
+        Kaden:Number(data.Kaden ?? 20),
+        Zavier:Number(data.Zavier ?? 20)
+      };
+
+    }else{
+
+      await saveScores();
+
+    }
+
+    render();
+
+    document.getElementById("syncStatus").textContent=
+      "🟢 Synced";
+
+  }catch(error){
+
+    console.error(error);
+
+    document.getElementById("syncStatus").textContent=
+      "🔴 Connection problem";
+
+  }
 }
-function resetAll(){
- if(confirm("Reset both kids to 20 points?")){
-  scores={Kaden:20,Zavier:20};
-  localStorage.setItem("kidsScores",JSON.stringify(scores));
+
+
+/* ---------------------------
+   SAVE SCORES TO FIREBASE
+---------------------------- */
+
+async function saveScores(){
+
+  try{
+
+    await fetch(
+      DATABASE_URL+"/scores.json",
+      {
+        method:"PUT",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify(scores)
+      }
+    );
+
+    document.getElementById("syncStatus").textContent=
+      "🟢 Synced";
+
+  }catch(error){
+
+    console.error(error);
+
+    document.getElementById("syncStatus").textContent=
+      "🔴 Couldn't save";
+
+  }
+}
+
+
+/* ---------------------------
+   CHANGE SCORE
+---------------------------- */
+
+async function change(k,n){
+
+  scores[k]=Math.max(0,Number(scores[k])+n);
+
   render();
- }
+
+  document.getElementById("syncStatus").textContent=
+    "Saving...";
+
+  await saveScores();
+
 }
+
+
+/* ---------------------------
+   RESET
+---------------------------- */
+
+async function resetAll(){
+
+  if(confirm("Reset both kids to 20 points?")){
+
+    scores={
+      Kaden:20,
+      Zavier:20
+    };
+
+    render();
+
+    document.getElementById("syncStatus").textContent=
+      "Saving...";
+
+    await saveScores();
+
+  }
+
+}
+
+
+/* ---------------------------
+   DISPLAY
+---------------------------- */
+
 function render(){
- document.getElementById("cards").innerHTML=kids.map(k=>{
-  let s=status(scores[k]);
-  return `<div class="card">
-   <div class="name">${k}</div>
-   <div class="score">${scores[k]} ⭐</div>
-   <div class="status">${s[0]}<br><small>${s[1]}</small></div>
-   <div class="buttons">
-    <button class="plus" onclick="change('${k}',1)">+1</button>
-    <button class="plus" onclick="change('${k}',2)">+2</button>
-    <button class="plus" onclick="change('${k}',3)">+3</button>
-    <button class="minus" onclick="change('${k}',-1)">−1</button>
-    <button class="minus" onclick="change('${k}',-2)">−2</button>
-    <button class="minus" onclick="change('${k}',-3)">−3</button>
-    <button class="minus" onclick="change('${k}',-5)">−5</button>
-    <button onclick="change('${k}',5)">+5</button>
-   </div>
-   <div class="log">Tap a button whenever they earn or lose points.</div>
-  </div>`;
- }).join("");
+
+  document.getElementById("cards").innerHTML=
+
+    kids.map(k=>{
+
+      let s=status(scores[k]);
+
+      return `
+      <div class="card">
+
+        <div class="name">
+          ${k}
+        </div>
+
+        <div class="score">
+          ${scores[k]} ⭐
+        </div>
+
+        <div class="status">
+          ${s[0]}<br>
+          <small>${s[1]}</small>
+        </div>
+
+        <div class="buttons">
+
+          <button class="plus"
+            onclick="change('${k}',1)">
+            +1
+          </button>
+
+          <button class="plus"
+            onclick="change('${k}',2)">
+            +2
+          </button>
+
+          <button class="plus"
+            onclick="change('${k}',3)">
+            +3
+          </button>
+
+          <button class="minus"
+            onclick="change('${k}',-1)">
+            −1
+          </button>
+
+          <button class="minus"
+            onclick="change('${k}',-2)">
+            −2
+          </button>
+
+          <button class="minus"
+            onclick="change('${k}',-3)">
+            −3
+          </button>
+
+          <button class="minus"
+            onclick="change('${k}',-5)">
+            −5
+          </button>
+
+          <button
+            onclick="change('${k}',5)">
+            +5
+          </button>
+
+        </div>
+
+        <div class="log">
+          Tap a button whenever they earn or lose points.
+        </div>
+
+      </div>
+      `;
+
+    }).join("");
+
 }
-render();
+
+
+/* ---------------------------
+   CHECK FOR CHANGES
+   EVERY 2 SECONDS
+---------------------------- */
+
+async function syncFromFirebase(){
+
+  if(updating) return;
+
+  try{
+
+    const response=await fetch(
+      DATABASE_URL+"/scores.json"
+    );
+
+    if(!response.ok) return;
+
+    const data=await response.json();
+
+    if(data && typeof data==="object"){
+
+      const newScores={
+        Kaden:Number(data.Kaden ?? 20),
+        Zavier:Number(data.Zavier ?? 20)
+      };
+
+      if(
+        newScores.Kaden!==scores.Kaden ||
+        newScores.Zavier!==scores.Zavier
+      ){
+
+        scores=newScores;
+
+        render();
+
+      }
+
+    }
+
+  }catch(error){
+
+    console.log("Sync error:",error);
+
+  }
+
+}
+
+
+/* ---------------------------
+   START APP
+---------------------------- */
+
+loadScores();
+
+setInterval(syncFromFirebase,2000);
+
 </script>
+
 </body>
 </html>
