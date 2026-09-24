@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kids Points Tracker</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f4f4f6;margin:0;padding:20px;color:#222}
+h1{text-align:center;margin:5px 0 8px}.sub{text-align:center;color:#666;margin-bottom:20px}
+.card{background:white;border-radius:20px;padding:20px;margin:16px 0;box-shadow:0 3px 15px #0001}
+.name{font-size:24px;font-weight:800;text-align:center}
+.score{text-align:center;font-size:58px;font-weight:900;margin:8px}
+.status{text-align:center;font-weight:700;margin-bottom:15px}
+.buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+button{border:0;border-radius:12px;padding:14px 5px;font-size:18px;font-weight:800;background:#e8e8ed}
+button.plus{background:#d9f7df}.minus{background:#ffdcdc}
+.reset{display:block;margin:18px auto;background:#222;color:white;padding:12px 22px}
+.log{font-size:13px;color:#666;margin-top:14px;min-height:18px}
+</style>
+</head>
+<body>
+<h1>🎮 Kids Points Tracker</h1>
+<div class="sub">Starting score: 20 points • Monday–Sunday</div>
+
+<div id="cards"></div>
+<button class="reset" onclick="resetAll()">Reset both to 20</button>
+
+<script>
+const kids=["Kaden","Zavier"];
+let scores=JSON.parse(localStorage.getItem("kidsScores")||'{"Kaden":20,"Zavier":20}');
+function status(n){
+ if(n>=25)return["🟢 Full gaming","Full gaming privileges"];
+ if(n>=20)return["🟢 Normal gaming","Normal gaming"];
+ if(n>=15)return["🟡 Reduced gaming","Reduced gaming"];
+ if(n>=10)return["🟠 No gaming","Earn back to 15"];
+ return["🔴 No gaming","Earn back to 15"];
+}
+function change(k,n){
+ scores[k]=Math.max(0,scores[k]+n);
+ localStorage.setItem("kidsScores",JSON.stringify(scores));
+ render();
+}
+function resetAll(){
+ if(confirm("Reset both kids to 20 points?")){
+  scores={Kaden:20,Zavier:20};
+  localStorage.setItem("kidsScores",JSON.stringify(scores));
+  render();
+ }
+}
+function render(){
+ document.getElementById("cards").innerHTML=kids.map(k=>{
+  let s=status(scores[k]);
+  return `<div class="card">
+   <div class="name">${k}</div>
+   <div class="score">${scores[k]} ⭐</div>
+   <div class="status">${s[0]}<br><small>${s[1]}</small></div>
+   <div class="buttons">
+    <button class="plus" onclick="change('${k}',1)">+1</button>
+    <button class="plus" onclick="change('${k}',2)">+2</button>
+    <button class="plus" onclick="change('${k}',3)">+3</button>
+    <button class="minus" onclick="change('${k}',-1)">−1</button>
+    <button class="minus" onclick="change('${k}',-2)">−2</button>
+    <button class="minus" onclick="change('${k}',-3)">−3</button>
+    <button class="minus" onclick="change('${k}',-5)">−5</button>
+    <button onclick="change('${k}',5)">+5</button>
+   </div>
+   <div class="log">Tap a button whenever they earn or lose points.</div>
+  </div>`;
+ }).join("");
+}
+render();
+</script>
+</body>
+</html>
