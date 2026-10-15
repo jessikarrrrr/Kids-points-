@@ -1,383 +1,169 @@
 <!doctype html>
 <html lang="en">
 <head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f4f6fb">
 <title>Kids Points Tracker</title>
-
 <style>
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  background:#f4f4f6;
-  margin:0;
-  padding:20px;
-  color:#222
-}
-h1{text-align:center;margin:5px 0 8px}
-.sub{text-align:center;color:#666;margin-bottom:20px}
-
-.card{
-  background:white;
-  border-radius:20px;
-  padding:20px;
-  margin:16px 0;
-  box-shadow:0 3px 15px #0001
-}
-
-.name{
-  font-size:24px;
-  font-weight:800;
-  text-align:center
-}
-
-.score{
-  text-align:center;
-  font-size:58px;
-  font-weight:900;
-  margin:8px
-}
-
-.status{
-  text-align:center;
-  font-weight:700;
-  margin-bottom:15px
-}
-
-.buttons{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px
-}
-
-button{
-  border:0;
-  border-radius:12px;
-  padding:16px 5px;
-  font-size:22px;
-  font-weight:800;
-  background:#e8e8ed
-}
-
-button.plus{
-  background:#d9f7df
-}
-
-.minus{
-  background:#ffdcdc
-}
-
-.reset{
-  display:block;
-  margin:18px auto;
-  background:#222;
-  color:white;
-  padding:12px 22px
-}
-
-.log{
-  font-size:13px;
-  color:#666;
-  margin-top:14px;
-  min-height:18px
-}
-
-.sync{
-  text-align:center;
-  font-size:12px;
-  color:#777;
-  margin-top:10px
-}
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#202436;background:#f4f6fb}
+*{box-sizing:border-box}body{margin:0;padding:18px;max-width:900px;margin-inline:auto}
+h1{text-align:center;margin:8px 0 4px;font-size:clamp(27px,5vw,38px)}.sub{text-align:center;color:#667085;margin:0 auto 18px;line-height:1.45}
+.notice{padding:12px 14px;background:#fff8e7;border:1px solid #f1d99a;border-radius:14px;font-size:14px;line-height:1.45;margin:12px 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px}
+.card{background:white;border-radius:20px;padding:18px;box-shadow:0 4px 18px #2024360d;border:1px solid #e8eaf1}
+.name{text-align:center;font-size:25px;font-weight:850}.score{text-align:center;font-size:58px;font-weight:900;line-height:1.2;margin:7px 0}
+.status{text-align:center;font-weight:750;margin:8px 0 15px;line-height:1.45}.muted{color:#667085;font-size:13px;font-weight:500}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+button{font:inherit;font-size:16px;font-weight:800;border:0;border-radius:12px;padding:13px 10px;cursor:pointer;background:#eceef4;color:#202436}
+button:active{transform:scale(.99)}button.plus{background:#dff7e5;color:#176534}button.minus{background:#ffe3e3;color:#9e2020}
+button.primary{background:#22283b;color:white}button.secondary{background:#e7eaf4}button.danger{background:#9f2020;color:white}
+.full{width:100%;margin-top:10px}.pending{background:#f4f6fb;border-radius:13px;padding:12px;margin:12px 0;font-size:14px;line-height:1.5}
+.actions{display:grid;gap:8px;margin-top:12px}.section{margin-top:18px;background:white;border-radius:18px;padding:16px;border:1px solid #e8eaf1}
+.rules{display:grid;grid-template-columns:1fr auto;gap:8px 12px;font-size:14px;line-height:1.4}.rules div:nth-child(even){font-weight:800;text-align:right}
+.small{font-size:12px;color:#667085;line-height:1.5}.sync{font-size:12px;text-align:center;margin:10px;color:#667085}
+label{display:flex;gap:8px;align-items:flex-start;font-size:14px;line-height:1.45}
+@media(min-width:700px){body{padding:26px}}
 </style>
 </head>
-
 <body>
-
-<h1>🎮 Kids Points Tracker</h1>
-
-<div class="sub">
-Start each day at 20 points • Yesterday's score determines today's gaming
+<h1>ð® Kids Points Tracker</h1>
+<p class="sub">Start each day at 20 points â¢ Today's behaviour sets tomorrow's consequence</p>
+<div class="notice"><strong>How penalties work:</strong> 1, 2 or 3 hours are taken off the end of the gaming day (normal cut-off 9:30 pm). If a child doesn't game, the hours stay pending until they next game and the penalty is served. A 0â9 score means one full gaming-free day; if they don't game that day, it stays pending.</div>
+<div id="cards" class="cards"></div>
+<div class="section">
+  <h2 style="margin:0 0 10px;font-size:20px">Point rules</h2>
+  <div class="rules">
+    <div>20+ points</div><div>No penalty</div>
+    <div>18â19 points</div><div>Lose 1 hour</div>
+    <div>15â17 points</div><div>Lose 2 hours</div>
+    <div>10â14 points</div><div>Lose 3 hours</div>
+    <div>0â9 points</div><div>No gaming for 1 day</div>
+  </div>
+  <p class="small">Normal cut-off is 9:30 pm. The point score resets to 20 when you finish the day. Scores can go above 20. Only +1 and â1 buttons are provided.</p>
 </div>
-
-<div id="cards"></div>
-
-<button class="reset" onclick="resetAll()">
-Reset both to 20
-</button>
-
-<div class="sync" id="syncStatus">
-Connecting...
+<div class="section">
+  <h2 style="margin:0 0 8px;font-size:20px">Finish today's scoring</h2>
+  <p class="small">Use this at the end of the day, once you've finished adding or removing points. It sets the consequence for the next gaming day and resets both scores to 20.</p>
+  <button class="primary full" onclick="finishDay()">Set tomorrow's consequences & reset scores</button>
+  <button class="secondary full" onclick="resetScoresOnly()">Reset both scores to 20 (without changing penalties)</button>
+  <p class="small">This app records the penalty; it cannot switch a PlayStation off automatically. When a penalty has actually been served, use the button on that child's card.</p>
 </div>
-
+<div id="sync" class="sync">Connecting to shared syncâ¦</div>
 <script>
-
 const kids=["Kaden","Zavier"];
-
-const DATABASE_URL =
-"https://kids-points-shared-default-rtdb.asia-southeast1.firebasedatabase.app";
-
-let scores={
-  Kaden:20,
-  Zavier:20
-};
-
-
-/* GAMING STATUS */
-
-function status(n){
-
-  if(n>=20)
-    return["🟢 3 hours gaming","Full gaming"];
-
-  if(n>=18)
-    return["🟢 2 hours gaming","2 hours gaming"];
-
-  if(n>=15)
-    return["🟡 1 hour gaming","1 hour gaming"];
-
-  if(n>=10)
-    return["🟠 No gaming","No gaming"];
-
-  return["🔴 No gaming + PHONE LOST","No gaming and phone taken away"];
-}
-
-
-/* LOAD SCORES FROM FIREBASE */
-
-async function loadScores(){
-
-  try{
-
-    const response=await fetch(
-      DATABASE_URL+"/scores.json"
-    );
-
-    if(!response.ok)
-      throw new Error("Database error");
-
-    const data=await response.json();
-
-    if(data && typeof data==="object"){
-
-      scores={
-        Kaden:Math.max(0,Number(data.Kaden ?? 20)),
-        Zavier:Math.max(0,Number(data.Zavier ?? 20))
-      };
-
-    }else{
-
-      await saveScores();
-
-    }
-
-    render();
-
-    document.getElementById("syncStatus").textContent=
-      "🟢 Synced";
-
-  }catch(error){
-
-    console.error(error);
-
-    document.getElementById("syncStatus").textContent=
-      "🔴 Connection problem";
-
+const DB_URL="https://kids-points-shared-default-rtdb.asia-southeast1.firebasedatabase.app/scores.json";
+const STORAGE_KEY="kidsPointsTracker_v2";
+const todayKey=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+function freshKid(){return {score:20,pendingHours:0,pendingNoGameDays:0,lastPenaltyLabel:"No penalty pending",lastUpdated:todayKey()}}
+function freshState(){return {version:2,date:todayKey(),kids:{Kaden:freshKid(),Zavier:freshKid()},history:[]}}
+let state=freshState(),syncTimer=null,isRemoteUpdate=false;
+function normalize(data){
+ const base=freshState();
+ if(!data||typeof data!=="object")return base;
+ // Migrate the older shared {Kaden:20,Zavier:20} score object if present.
+ const src=data.kids||data;
+ for(const k of kids){
+  const old=src[k];
+  if(typeof old==="number"){base.kids[k].score=Math.max(0,old);continue}
+  if(old&&typeof old==="object"){
+   base.kids[k]={...base.kids[k],score:Number.isFinite(old.score)?Math.max(0,old.score):20,
+    pendingHours:Number.isFinite(old.pendingHours)?Math.max(0,old.pendingHours):0,
+    pendingNoGameDays:Number.isFinite(old.pendingNoGameDays)?Math.max(0,old.pendingNoGameDays):0,
+    lastPenaltyLabel:typeof old.lastPenaltyLabel==="string"?old.lastPenaltyLabel:"No penalty pending",
+    lastUpdated:old.lastUpdated||todayKey()};
   }
+ }
+ base.version=2;base.date=data.date||todayKey();base.history=Array.isArray(data.history)?data.history.slice(-30):[];
+ return base;
 }
-
-
-/* SAVE SCORES TO FIREBASE */
-
-async function saveScores(){
-
-  try{
-
-    await fetch(
-      DATABASE_URL+"/scores.json",
-      {
-        method:"PUT",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify(scores)
-      }
-    );
-
-    document.getElementById("syncStatus").textContent=
-      "🟢 Synced";
-
-  }catch(error){
-
-    console.error(error);
-
-    document.getElementById("syncStatus").textContent=
-      "🔴 Couldn't save";
-
-  }
+function penaltyFor(score){if(score<=9)return {hours:0,noGame:1,label:"No gaming for one full gaming day"};if(score<=14)return {hours:3,noGame:0,label:"Lose 3 hours"};if(score<=17)return {hours:2,noGame:0,label:"Lose 2 hours"};if(score<=19)return {hours:1,noGame:0,label:"Lose 1 hour"};return {hours:0,noGame:0,label:"No penalty"}}
+function statusFor(k){
+ const p=penaltyFor(k.score);
+ if(p.noGame)return ["ð´ No gaming day earned","Today's score means a full gaming-free day tomorrow."];
+ if(p.hours)return ["ð  Gaming time penalty earned",`Tomorrow: lose ${p.hours} hour${p.hours===1?"":"s"} from the end of the gaming day.`];
+ return ["ð¢ No penalty earned","Tomorrow: normal gaming privileges."];
 }
-
-
-/* CHANGE SCORE
-   +1 OR -1
-   CAN GO ABOVE 20
-   CANNOT GO BELOW 0
-*/
-
-async function change(k,n){
-
-  scores[k]=Math.max(
-    0,
-    Number(scores[k])+n
-  );
-
-  render();
-
-  document.getElementById("syncStatus").textContent=
-    "Saving...";
-
-  await saveScores();
-
-}
-
-
-/* RESET */
-
-async function resetAll(){
-
-  if(confirm("Reset both kids to 20 points?")){
-
-    scores={
-      Kaden:20,
-      Zavier:20
-    };
-
-    render();
-
-    document.getElementById("syncStatus").textContent=
-      "Saving...";
-
-    await saveScores();
-
-  }
-
-}
-
-
-/* DISPLAY */
-
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function render(){
-
-  document.getElementById("cards").innerHTML=
-
-    kids.map(k=>{
-
-      let s=status(scores[k]);
-
-      return `
-      <div class="card">
-
-        <div class="name">
-          ${k}
-        </div>
-
-        <div class="score">
-          ${scores[k]} ⭐
-        </div>
-
-        <div class="status">
-          ${s[0]}<br>
-          <small>${s[1]}</small>
-        </div>
-
-        <div class="buttons">
-
-          <button
-            class="plus"
-            onclick="change('${k}',1)">
-            +1
-          </button>
-
-          <button
-            class="minus"
-            onclick="change('${k}',-1)">
-            −1
-          </button>
-
-        </div>
-
-        <div class="log">
-          Tap +1 when they earn a point or −1 when they lose one.
-        </div>
-
-      </div>
-      `;
-
-    }).join("");
-
+ document.getElementById("cards").innerHTML=kids.map(name=>{
+  const k=state.kids[name],st=statusFor(k);
+  const pending=k.pendingNoGameDays?`<strong>Pending:</strong> ${k.pendingNoGameDays} full gaming-free day${k.pendingNoGameDays===1?"":"s"} still to serve. If they don't game, it stays pending.`:
+    k.pendingHours?`<strong>Pending:</strong> ${k.pendingHours} hour${k.pendingHours===1?"":"s"} to take off the end of a gaming day. Normal cut-off is 9:30 pm, so ${formatCutoff(k.pendingHours)}. If they don't game, it carries over.`:"No old penalty waiting to be served.";
+  return `<article class="card">
+   <div class="name">${name}</div><div class="score">${k.score} â­</div>
+   <div class="status">${st[0]}<br><span class="muted">${st[1]}</span></div>
+   <div class="buttons"><button class="plus" onclick="change('${name}',1)">+1 point</button><button class="minus" onclick="change('${name}',-1)">â1 point</button></div>
+   <div class="pending">${pending}</div>
+   <div class="pending"><strong>Today's score means:</strong> ${esc(penaltyFor(k.score).label)}.</div>
+   <div class="actions">
+    <button class="primary" onclick="servePenalty('${name}')">${k.pendingNoGameDays?"Mark full gaming-free day served":k.pendingHours?"Mark today's hour penalty served":"No penalty to serve"}</button>
+   </div>
+  </article>`;
+ }).join("");
 }
-
-
-/* SYNC EVERY 2 SECONDS */
-
-async function syncFromFirebase(){
-
-  try{
-
-    const response=await fetch(
-      DATABASE_URL+"/scores.json"
-    );
-
-    if(!response.ok)
-      return;
-
-    const data=await response.json();
-
-    if(data && typeof data==="object"){
-
-      const newScores={
-
-        Kaden:Math.max(
-          0,
-          Number(data.Kaden ?? 20)
-        ),
-
-        Zavier:Math.max(
-          0,
-          Number(data.Zavier ?? 20)
-        )
-
-      };
-
-      if(
-        newScores.Kaden!==scores.Kaden ||
-        newScores.Zavier!==scores.Zavier
-      ){
-
-        scores=newScores;
-
-        render();
-
-      }
-
+function formatCutoff(hours){const mins=21*60+30-hours*60;const h=Math.floor(mins/60),m=mins%60;return `stop by ${h%12||12}:${String(m).padStart(2,"0")} ${h>=12?"pm":"am"}`}
+function change(name,delta){const k=state.kids[name];k.score=Math.max(0,k.score+delta);k.lastUpdated=todayKey();saveLocal();render();pushRemote()}
+function finishDay(){
+ if(!confirm("Set each child's consequence from today's final score and reset both scores to 20?"))return;
+ const day=todayKey();
+ for(const name of kids){
+  const k=state.kids[name],p=penaltyFor(k.score);
+  if(p.noGame)k.pendingNoGameDays+=1;else k.pendingHours+=p.hours;
+  k.lastPenaltyLabel=p.label;
+  state.history.push({date:day,kid:name,score:k.score,penalty:p.label});
+  k.score=20;k.lastUpdated=day;
+ }
+ state.history=state.history.slice(-30);state.date=day;saveLocal();render();pushRemote();
+ alert("Consequences set. Both scores are back to 20. Any unserved penalties remain pending.");
+}
+function servePenalty(name){
+ const k=state.kids[name];
+ if(k.pendingNoGameDays>0){
+  if(!confirm("Confirm that "+name+" has completed a full gaming-free day?"))return;
+  k.pendingNoGameDays-=1;
+ }else if(k.pendingHours>0){
+  if(!confirm("Confirm that "+name+" has served the full "+k.pendingHours+"-hour penalty by stopping early on a gaming day?"))return;
+  k.pendingHours=0;
+ }else{alert("No pending penalty to mark as served.");return}
+ saveLocal();render();pushRemote();
+}
+function resetScoresOnly(){if(!confirm("Reset both scores to 20 without changing pending penalties?"))return;for(const n of kids)state.kids[n].score=20;saveLocal();render();pushRemote()}
+function saveLocal(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
+async function pullRemote(){
+ try{
+  const r=await fetch(DB_URL,{cache:"no-store"});
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  const data=await r.json();
+  if(data&&!isRemoteUpdate){
+   const remote=normalize(data);
+   // Remote state is authoritative after first successful load; local state used if database is empty.
+   if(data.version===2||data.kids){state=remote;saveLocal();render()}
+   else {
+    // Safely migrate the original shared Firebase format {Kaden: score, Zavier: score}
+    // without replacing the existing scores with default/local values.
+    const migrated=freshState();
+    for(const name of kids){
+     const value=Number(data[name]);
+     migrated.kids[name].score=Number.isFinite(value)?Math.max(0,value):20;
     }
-
-  }catch(error){
-
-    console.log("Sync error:",error);
-
-  }
-
+    state=migrated;saveLocal();render();await pushRemote();
+   }
+  }else if(!data){await pushRemote()}
+  document.getElementById("sync").textContent="Shared sync connected â¢ changes should appear on both phones";
+ }catch(e){document.getElementById("sync").textContent="Offline/local mode â¢ shared sync could not connect"}
 }
-
-
-/* START */
-
-loadScores();
-
-setInterval(
-  syncFromFirebase,
-  2000
-);
-
+async function pushRemote(){
+ isRemoteUpdate=true;
+ try{const r=await fetch(DB_URL,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(state)});if(!r.ok)throw new Error("HTTP "+r.status);document.getElementById("sync").textContent="Shared sync connected â¢ changes saved"}catch(e){document.getElementById("sync").textContent="Saved on this phone â¢ shared sync failed; check Firebase rules/connectivity"}finally{isRemoteUpdate=false}
+}
+function init(){
+ try{const saved=localStorage.getItem(STORAGE_KEY);if(saved)state=normalize(JSON.parse(saved))}catch(e){}
+ render();pullRemote();
+ if(syncTimer)clearInterval(syncTimer);
+ syncTimer=setInterval(pullRemote,4000);
+}
+init();
 </script>
-
 </body>
 </html>
